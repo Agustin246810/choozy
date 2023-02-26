@@ -9,16 +9,18 @@ class ChoozyScreen extends StatefulWidget {
 
 class _ChoozyScreenState extends State<ChoozyScreen> {
 
-  bool gesture1 = false;
-  bool gesture2 = false;
-  bool gesture3 = false;
+  List<bool> listGestures = [false,false,false];
+
+  int currentStack = 0;
 
   double widthContainer = 400;
   double heightContainer = 400;
 
-  Offset currentPosition1 = const Offset(-100,-100);
-  Offset currentPosition2 = const Offset(-100,-100);
-  Offset currentPosition3 = const Offset(-100,-100);
+  List<Offset> listCurrentPositions = [
+    const Offset(-100,-100),
+    const Offset(-100,-100),
+    const Offset(-100,-100)
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -29,63 +31,100 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
         ),
         body: Column(
           children: [
-            GestureDetector(
-              onPanEnd: (details){
-                setState(() {
-                  gesture1 = false;
-                  gesture2 = false;
-                  gesture3 = false;
-                });
-              },
-              onVerticalDragUpdate: (details) {
-                Offset position = details.localPosition;
-                setState(() {
-                  if(position.dx >= 0 && 
-                  position.dx <= widthContainer && 
-                  position.dy >= 0 && 
-                  position.dy <= heightContainer){
-                    print(position);
-                    gesture1 = true;
-                    currentPosition1 = position;
-                  }
-                });
-              },
-              child: Container(
-                width: widthContainer,
-                height: heightContainer,
-                color: Colors.grey,
-                child: Stack(
-                  children: [
-                    Visibility(
-                      visible: gesture1,
-                      child: PositionedCircle(
-                        index: 0, 
-                        position: currentPosition1
-                      ),
-                    ),
-                  ],
+            IndexedStack(
+              index: currentStack,
+              children: [
+                gestureDetectorFinger(
+                  gesture: listGestures[0],
+                  index: 0,
+                  position: listCurrentPositions[0],
                 ),
-              ),
+                gestureDetectorFinger(
+                  gesture: listGestures[1],
+                  index: 1,
+                  position: listCurrentPositions[1],
+                ),
+                gestureDetectorFinger(
+                  gesture: listGestures[2],
+                  index: 2,
+                  position: listCurrentPositions[2],
+                ),
+              ],
             ),
             const Spacer(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Visibility(
-                  visible: gesture1,
+                  visible: listGestures[0],
                   child: const Square(index: 0,),
                 ),
                 Visibility(
-                  visible: gesture2,
+                  visible: listGestures[1],
                   child: const Square(index: 1,),
                 ),
                 Visibility(
-                  visible: gesture3,
+                  visible: listGestures[2],
                   child: const Square(index: 2,),
                 ),
               ],
             ),
             const Spacer(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  GestureDetector gestureDetectorFinger({
+    required bool gesture,
+    required Offset position,
+    required int index,
+  }) {
+    return GestureDetector(
+      onDoubleTap: (){
+        setState(() {
+          listGestures[1] = true;
+          currentStack = 2;
+        });
+      },
+      onTap: (){
+        setState(() {
+          listGestures[0] = true;
+          currentStack = 1;
+        });
+      },
+      onPanEnd: (details){
+        setState(() {
+          listGestures[index] = false;
+        });
+      },
+      onVerticalDragUpdate: (details) {
+        Offset position = details.localPosition;
+        setState(() {
+          if(position.dx >= 0 && 
+          position.dx <= widthContainer && 
+          position.dy >= 0 && 
+          position.dy <= heightContainer){
+            print(position);
+            listGestures[index] = true;
+            listCurrentPositions[index] = position;
+          }
+        });
+      },
+      child: Container(
+        width: widthContainer,
+        height: heightContainer,
+        color: Colors.grey,
+        child: Stack(
+          children: [
+            Visibility(
+              visible: gesture,
+              child: PositionedCircle(
+                index: index, 
+                position: position,
+              ),
+            ),
           ],
         ),
       ),
