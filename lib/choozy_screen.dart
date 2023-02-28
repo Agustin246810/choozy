@@ -1,3 +1,5 @@
+// ignore_for_file: dead_code
+
 import 'package:flutter/material.dart';
 
 class ChoozyScreen extends StatefulWidget {
@@ -8,17 +10,14 @@ class ChoozyScreen extends StatefulWidget {
 }
 
 class _ChoozyScreenState extends State<ChoozyScreen> {
-
-  bool gesture1 = false;
-  bool gesture2 = false;
-  bool gesture3 = false;
-
   double widthContainer = 400;
   double heightContainer = 400;
 
-  Offset currentPosition1 = const Offset(-100,-100);
-  Offset currentPosition2 = const Offset(-100,-100);
-  Offset currentPosition3 = const Offset(-100,-100);
+  Offset currentPosition1 = const Offset(-100, -100);
+  Offset currentPosition2 = const Offset(-100, -100);
+  Offset currentPosition3 = const Offset(-100, -100);
+
+  Offset position = const Offset(100, 100);
 
   @override
   Widget build(BuildContext context) {
@@ -29,61 +28,11 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
         ),
         body: Column(
           children: [
-            GestureDetector(
-              onPanEnd: (details){
-                setState(() {
-                  gesture1 = false;
-                  gesture2 = false;
-                  gesture3 = false;
-                });
-              },
-              onVerticalDragUpdate: (details) {
-                Offset position = details.localPosition;
-                setState(() {
-                  if(position.dx >= 0 && 
-                  position.dx <= widthContainer && 
-                  position.dy >= 0 && 
-                  position.dy <= heightContainer){
-                    print(position);
-                    gesture1 = true;
-                    currentPosition1 = position;
-                  }
-                });
-              },
-              child: Container(
-                width: widthContainer,
-                height: heightContainer,
-                color: Colors.grey,
-                child: Stack(
-                  children: [
-                    Visibility(
-                      visible: gesture1,
-                      child: PositionedCircle(
-                        index: 0, 
-                        position: currentPosition1
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Visibility(
-                  visible: gesture1,
-                  child: const Square(index: 0,),
-                ),
-                Visibility(
-                  visible: gesture2,
-                  child: const Square(index: 1,),
-                ),
-                Visibility(
-                  visible: gesture3,
-                  child: const Square(index: 2,),
-                ),
-              ],
+            Container(
+              width: widthContainer,
+              height: heightContainer,
+              color: Colors.grey,
+              child: _test(),
             ),
             const Spacer(),
           ],
@@ -91,44 +40,60 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
       ),
     );
   }
-}
 
-class Square extends StatelessWidget {
-  final int index;
-  const Square({
-    Key? key,
-    required this.index
-  }) : super(key: key);
+  _test() {
+    bool isOn = false;
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 60,
-      height: 60,
-      color: Colors.primaries[index],
+    return SizedBox(
+      width: widthContainer,
+      height: heightContainer,
+      child: GestureDetector(
+        onPanEnd: (details) {
+          setState(() {
+            isOn = false;
+          });
+        },
+        onPanStart: (details) {
+          position = details.localPosition;
+          setState(() {
+            isOn = true;
+          });
+        },
+        onPanUpdate: (details) {
+          setState(() {
+            position = details.localPosition;
+            print(position);
+          });
+        },
+        child: Stack(
+          children: [
+            PositionedCircle(index: 0, position: position),
+          ],
+        ),
+      ),
     );
   }
 }
 
 class PositionedCircle extends StatelessWidget {
   final int index;
-  final Offset position;
+  Offset position;
   final double widthPositionedCircle;
   final double heightPositionedCircle;
 
-  const PositionedCircle({
-    Key? key, 
-    required this.index, 
-    required this.position, 
-    this.widthPositionedCircle = 40, 
+  PositionedCircle({
+    Key? key,
+    required this.index,
+    required this.position,
+    this.widthPositionedCircle = 40,
     this.heightPositionedCircle = 40,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      top: position.dy - widthPositionedCircle/2,
-      left: position.dx - heightPositionedCircle/2,
+      top: position.dy - widthPositionedCircle / 2,
+      left: position.dx - heightPositionedCircle / 2,
       child: Container(
         width: widthPositionedCircle,
         height: heightPositionedCircle,
@@ -137,6 +102,20 @@ class PositionedCircle extends StatelessWidget {
           shape: BoxShape.circle,
         ),
       ),
+    );
+  }
+}
+
+class Square extends StatelessWidget {
+  final int index;
+  const Square({Key? key, required this.index}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 60,
+      height: 60,
+      color: Colors.primaries[index],
     );
   }
 }
