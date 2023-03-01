@@ -13,11 +13,13 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
   double widthContainer = 400;
   double heightContainer = 400;
 
-  Offset currentPosition1 = const Offset(-100, -100);
-  Offset currentPosition2 = const Offset(-100, -100);
-  Offset currentPosition3 = const Offset(-100, -100);
+  List<bool> isOnList = [false, false, false];
 
-  Offset position = const Offset(100, 100);
+  List<Offset> position = [
+    const Offset(100, 100),
+    const Offset(100, 100),
+    const Offset(100, 100),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -26,48 +28,50 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
         appBar: AppBar(
           title: const Text("Choozy"),
         ),
-        body: Column(
+        body: Stack(
           children: [
-            Container(
-              width: widthContainer,
-              height: heightContainer,
-              color: Colors.grey,
-              child: _test(),
+            GeneralGestureDetector(0),
+            Visibility(
+              visible: isOnList[0],
+              child: GeneralGestureDetector(1),
             ),
-            const Spacer(),
           ],
         ),
       ),
     );
   }
 
-  _test() {
-    bool isOn = false;
-
-    return SizedBox(
-      width: widthContainer,
-      height: heightContainer,
-      child: GestureDetector(
-        onPanEnd: (details) {
-          setState(() {
-            isOn = false;
-          });
-        },
-        onPanStart: (details) {
-          position = details.localPosition;
-          setState(() {
-            isOn = true;
-          });
-        },
-        onPanUpdate: (details) {
-          setState(() {
-            position = details.localPosition;
-            print(position);
-          });
-        },
+  GeneralGestureDetector(int index) {
+    return GestureDetector(
+      onPanEnd: (details) {
+        setState(() {
+          isOnList[index] = false;
+        });
+      },
+      onPanStart: (details) {
+        position[index] = details.localPosition;
+        setState(() {
+          isOnList[index] = true;
+        });
+      },
+      onPanUpdate: (details) {
+        setState(() {
+          position[index] = details.localPosition;
+        });
+      },
+      child: Container(
+        width: widthContainer,
+        height: heightContainer,
+        color: Colors.transparent,
         child: Stack(
           children: [
-            PositionedCircle(index: 0, position: position),
+            // PositionedCircle(
+            //   index: index + 1,
+            //   position: position[index - 1],
+            // ),
+            isOnList[index]
+                ? PositionedCircle(index: index + 1, position: position[index])
+                : const SizedBox.shrink(),
           ],
         ),
       ),
@@ -85,8 +89,8 @@ class PositionedCircle extends StatelessWidget {
     Key? key,
     required this.index,
     required this.position,
-    this.widthPositionedCircle = 40,
-    this.heightPositionedCircle = 40,
+    this.widthPositionedCircle = 100,
+    this.heightPositionedCircle = 100,
   }) : super(key: key);
 
   @override
