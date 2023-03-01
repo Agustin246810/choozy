@@ -1,6 +1,7 @@
 // ignore_for_file: dead_code
 
 import 'package:flutter/material.dart';
+import 'dart:math';
 
 class ChoozyScreen extends StatefulWidget {
   const ChoozyScreen({Key? key}) : super(key: key);
@@ -10,20 +11,34 @@ class ChoozyScreen extends StatefulWidget {
 }
 
 class _ChoozyScreenState extends State<ChoozyScreen> {
-  int maxPlayersAmount = 20;
+  int counter = 0;
+  bool isCounting = false;
 
-  double widthContainer = 400;
-  double heightContainer = 800;
+  int maxPlayersAmount = 20, currentPlaying = 0;
+
+  // double widthContainer = 400;
+  // double heightContainer = 800;
 
   List<bool> isOnList = [];
-
   List<Offset> positionList = [];
+  List<Widget> gestureDetectors = [];
 
   @override
   void initState() {
     isOnList = List.generate(maxPlayersAmount, (index) => false);
     positionList =
         List.generate(maxPlayersAmount, (index) => const Offset(0, 0));
+    // gestureDetectors = List.generate(
+    //   maxPlayersAmount,
+    //   (index) {
+    //     return index == 0
+    //         ? GeneralGestureDetector(index)
+    //         : Visibility(
+    //             visible: isOnList[index - 1],
+    //             child: GeneralGestureDetector(index),
+    //           );
+    //   },
+    // );
     super.initState();
   }
 
@@ -35,6 +50,7 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
           title: const Text("Choozy"),
         ),
         body: Stack(
+          // children: gestureDetectors,
           children: List.generate(
             maxPlayersAmount,
             (index) {
@@ -55,13 +71,21 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
     return GestureDetector(
       onPanEnd: (details) {
         setState(() {
+          // isOnList[index] = false;
+          currentPlaying = index;
           for (int i = index; i < maxPlayersAmount; i++) {
             isOnList[i] = false;
           }
         });
       },
       onPanStart: (details) {
+        currentPlaying = index + 1;
         positionList[index] = details.localPosition;
+        if (currentPlaying > 1) {
+          // _counterRestart();
+          counter++;
+          _counterStart(counter);
+        }
         setState(() {
           isOnList[index] = true;
         });
@@ -69,11 +93,12 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
       onPanUpdate: (details) {
         setState(() {
           positionList[index] = details.localPosition;
+          print(currentPlaying);
         });
       },
       child: Container(
-        width: widthContainer,
-        height: heightContainer,
+        width: double.infinity,
+        height: double.infinity,
         color: Colors.transparent,
         child: Stack(
           children: [
@@ -84,6 +109,22 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _counterRestart() {}
+
+  Future<void> _counterStart(int counter) async {
+    isCounting = true;
+    Future.delayed(
+      const Duration(seconds: 3),
+      () {
+        if (isCounting && counter == this.counter) {
+          int winer = Random().nextInt(currentPlaying);
+
+          print("Ganó el ${winer}");
+        }
+      },
     );
   }
 }
@@ -115,20 +156,6 @@ class PositionedCircle extends StatelessWidget {
           shape: BoxShape.circle,
         ),
       ),
-    );
-  }
-}
-
-class Square extends StatelessWidget {
-  final int index;
-  const Square({Key? key, required this.index}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 60,
-      height: 60,
-      color: Colors.primaries[index],
     );
   }
 }
