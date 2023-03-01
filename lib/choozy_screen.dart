@@ -10,16 +10,22 @@ class ChoozyScreen extends StatefulWidget {
 }
 
 class _ChoozyScreenState extends State<ChoozyScreen> {
+  int maxPlayersAmount = 20;
+
   double widthContainer = 400;
-  double heightContainer = 400;
+  double heightContainer = 800;
 
-  List<bool> isOnList = [false, false, false];
+  List<bool> isOnList = [];
 
-  List<Offset> position = [
-    const Offset(100, 100),
-    const Offset(100, 100),
-    const Offset(100, 100),
-  ];
+  List<Offset> positionList = [];
+
+  @override
+  void initState() {
+    isOnList = List.generate(maxPlayersAmount, (index) => false);
+    positionList =
+        List.generate(maxPlayersAmount, (index) => const Offset(0, 0));
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,13 +35,17 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
           title: const Text("Choozy"),
         ),
         body: Stack(
-          children: [
-            GeneralGestureDetector(0),
-            Visibility(
-              visible: isOnList[0],
-              child: GeneralGestureDetector(1),
-            ),
-          ],
+          children: List.generate(
+            maxPlayersAmount,
+            (index) {
+              return index == 0
+                  ? GeneralGestureDetector(index)
+                  : Visibility(
+                      visible: isOnList[index - 1],
+                      child: GeneralGestureDetector(index),
+                    );
+            },
+          ),
         ),
       ),
     );
@@ -45,18 +55,20 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
     return GestureDetector(
       onPanEnd: (details) {
         setState(() {
-          isOnList[index] = false;
+          for (int i = index; i < maxPlayersAmount; i++) {
+            isOnList[i] = false;
+          }
         });
       },
       onPanStart: (details) {
-        position[index] = details.localPosition;
+        positionList[index] = details.localPosition;
         setState(() {
           isOnList[index] = true;
         });
       },
       onPanUpdate: (details) {
         setState(() {
-          position[index] = details.localPosition;
+          positionList[index] = details.localPosition;
         });
       },
       child: Container(
@@ -65,12 +77,9 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
         color: Colors.transparent,
         child: Stack(
           children: [
-            // PositionedCircle(
-            //   index: index + 1,
-            //   position: position[index - 1],
-            // ),
             isOnList[index]
-                ? PositionedCircle(index: index + 1, position: position[index])
+                ? PositionedCircle(
+                    index: index + 1, position: positionList[index])
                 : const SizedBox.shrink(),
           ],
         ),
