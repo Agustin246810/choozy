@@ -3,22 +3,23 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 
-class ChoozyScreen extends StatefulWidget {
-  const ChoozyScreen({Key? key}) : super(key: key);
+class ChoozyScreen2 extends StatefulWidget {
+  const ChoozyScreen2({Key? key}) : super(key: key);
 
   @override
-  State<ChoozyScreen> createState() => _ChoozyScreenState();
+  State<ChoozyScreen2> createState() => _ChoozyScreen2State();
 }
 
-class _ChoozyScreenState extends State<ChoozyScreen> {
+class _ChoozyScreen2State extends State<ChoozyScreen2> {
   int counter = 0;
   bool isCounting = false;
 
-  int maxPlayersAmount = 20, currentPlaying = 0;
+  int maxPlayersAmount = 10, currentPlaying = 0;
+  int countDetector = 0;
 
   List<bool> isOnList = [];
   List<Offset> positionList = [];
-  List<Widget> gestureDetectors = [];
+  // late List<Widget> listVisibiities;
 
   @override
   void initState() {
@@ -30,14 +31,7 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text("Choozy"),
-        ),
-        body: Stack(
-          // children: gestureDetectors,
-          children: List.generate(
+    listVisibiities = List.generate(
             maxPlayersAmount,
             (index) {
               return index == 0
@@ -47,21 +41,37 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
                       child: GeneralGestureDetector(index),
                     );
             },
-          ),
+          );
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("Choozy"),
+        ),
+        body: Stack(
+          children: listVisibiities,
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: (){
+            setState(() {
+              isOnList[5] = true;
+            });
+          },
         ),
       ),
     );
   }
 
   GeneralGestureDetector(int index) {
+    print("Generando un nuevo detector [$index]");
     return GestureDetector(
       onPanEnd: (details) {
         setState(() {
           // isOnList[index] = false;
           currentPlaying = index;
-          for (int i = index; i < maxPlayersAmount; i++) {
-            isOnList[i] = false;
-          }
+          // for (int i = index; i < maxPlayersAmount; i++) {
+          //   isOnList[i] = false;
+          // }
+          isOnList[index] = false;
         });
       },
       onPanStart: (details) {
@@ -70,7 +80,7 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
         if (currentPlaying > 1) {
           // _counterRestart();
           counter++;
-          _counterStart(counter);
+          //_counterStart(counter);
         }
         setState(() {
           isOnList[index] = true;
@@ -83,9 +93,9 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
         });
       },
       child: Container(
-        width: double.infinity,
-        height: double.infinity,
-        color: Colors.transparent,
+        width: 380 - (5 * index).toDouble(),
+        height: 720 - (5 * index).toDouble(),
+        color: Colors.transparent,//Colors.primaries[index].withOpacity(0.6),
         child: Stack(
           children: [
             isOnList[index]
@@ -138,10 +148,12 @@ class PositionedCircle extends StatelessWidget {
         width: widthPositionedCircle,
         height: heightPositionedCircle,
         decoration: BoxDecoration(
-          color: Colors.primaries[index],
+          color: Colors.primaries[index],//Colors.black,//Colors.primaries[index],
           shape: BoxShape.circle,
         ),
       ),
     );
   }
 }
+
+late List<Widget> listVisibiities;
