@@ -20,12 +20,22 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
   List<Offset> positionList = [];
   List<Widget> gestureDetectors = [];
 
+  late Widget generalGestureDetectorTest;
+
   @override
   void initState() {
     isOnList = List.generate(maxPlayersAmount, (index) => false);
     positionList =
         List.generate(maxPlayersAmount, (index) => const Offset(0, 0));
     super.initState();
+    generalGestureDetectorTest = GeneralGestureDetector(
+      index: 0,
+      onPanEnd: (following) {
+        setState(() {
+          generalGestureDetectorTest = following;
+        });
+      },
+    );
   }
 
   @override
@@ -37,23 +47,30 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
         ),
         body: Stack(
           // children: gestureDetectors,
-          children: List.generate(
-            maxPlayersAmount,
-            (index) {
-              return index == 0
-                  ? GeneralGestureDetector(index)
-                  : Visibility(
-                      visible: isOnList[index - 1],
-                      child: GeneralGestureDetector(index),
-                    );
-            },
-          ),
+          // children: List.generate(
+          //   maxPlayersAmount,
+          //   (index) {
+          //     return index == 0
+          //         ? generalGestureDetector(index)
+          //         : Visibility(
+          //             visible: isOnList[index - 1],
+          //             child: generalGestureDetector(index),
+          //           );
+          //   },
+          // ),
+          children: [
+            SizedBox(
+              width: double.infinity,
+              height: double.infinity,
+              child: generalGestureDetectorTest,
+            ),
+          ],
         ),
       ),
     );
   }
 
-  GeneralGestureDetector(int index) {
+  generalGestureDetector(int index) {
     return GestureDetector(
       onPanEnd: (details) {
         setState(() {
@@ -115,6 +132,80 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
   }
 }
 
+class GeneralGestureDetector extends StatefulWidget {
+  GeneralGestureDetector({
+    super.key,
+    required this.index,
+    required this.onPanEnd,
+  });
+
+  int index;
+  Offset offset = const Offset(100, 100);
+  Widget following = const SizedBox.shrink();
+  Function(Widget following) onPanEnd;
+  bool isTouching = false;
+
+  @override
+  State<GeneralGestureDetector> createState() => _GeneralGestureDetectorState();
+}
+
+class _GeneralGestureDetectorState extends State<GeneralGestureDetector> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: double.infinity,
+      child: Stack(
+        children: [
+          Visibility(
+            visible: widget.isTouching,
+            child: PositionedCircle(
+              index: widget.index,
+              position: widget.offset,
+            ),
+          ),
+          SizedBox(
+            width: double.infinity,
+            height: double.infinity,
+            child: GestureDetector(
+              onPanDown: (details) {
+                widget.isTouching = true;
+                widget.offset = details.localPosition;
+                widget.following = GeneralGestureDetector(
+                  index: widget.index + 1,
+                  onPanEnd: (following) {
+                    setState(() {
+                      widget.following = following;
+                    });
+                  },
+                );
+                setState(() {});
+              },
+              onPanEnd: (details) {
+                setState(() {
+                  widget.isTouching = false;
+                  widget.onPanEnd(widget.following);
+                });
+              },
+              onPanUpdate: (details) {
+                setState(() {
+                  widget.offset = details.localPosition;
+                });
+              },
+            ),
+          ),
+          widget.following,
+        ],
+      ),
+    );
+  }
+}
+
 class PositionedCircle extends StatelessWidget {
   final int index;
   Offset position;
@@ -125,8 +216,8 @@ class PositionedCircle extends StatelessWidget {
     Key? key,
     required this.index,
     required this.position,
-    this.widthPositionedCircle = 100,
-    this.heightPositionedCircle = 100,
+    this.widthPositionedCircle = 300,
+    this.heightPositionedCircle = 300,
   }) : super(key: key);
 
   @override

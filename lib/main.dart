@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Choozy',
       theme: ThemeData.dark(),
-      home: const ChoozyScreenDesign(),
+      home: const ChoozyScreen(),
       routes: {
         const ChoozyScreenDesign().id: (_) => const ChoozyScreenDesign(),
         const TutorialScreen01().id: (_) => const TutorialScreen01(),
