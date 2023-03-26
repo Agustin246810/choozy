@@ -70,50 +70,50 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
     );
   }
 
-  generalGestureDetector(int index) {
-    return GestureDetector(
-      onPanEnd: (details) {
-        setState(() {
-          // isOnList[index] = false;
-          currentPlaying = index;
-          for (int i = index; i < maxPlayersAmount; i++) {
-            isOnList[i] = false;
-          }
-        });
-      },
-      onPanStart: (details) {
-        currentPlaying = index + 1;
-        positionList[index] = details.localPosition;
-        if (currentPlaying > 1) {
-          // _counterRestart();
-          counter++;
-          _counterStart(counter);
-        }
-        setState(() {
-          isOnList[index] = true;
-        });
-      },
-      onPanUpdate: (details) {
-        setState(() {
-          positionList[index] = details.localPosition;
-          print(currentPlaying);
-        });
-      },
-      child: Container(
-        width: double.infinity,
-        height: double.infinity,
-        color: Colors.transparent,
-        child: Stack(
-          children: [
-            isOnList[index]
-                ? PositionedCircle(
-                    index: index + 1, position: positionList[index])
-                : const SizedBox.shrink(),
-          ],
-        ),
-      ),
-    );
-  }
+  // generalGestureDetector(int index) {
+  //   return GestureDetector(
+  //     onPanEnd: (details) {
+  //       setState(() {
+  //         // isOnList[index] = false;
+  //         currentPlaying = index;
+  //         for (int i = index; i < maxPlayersAmount; i++) {
+  //           isOnList[i] = false;
+  //         }
+  //       });
+  //     },
+  //     onPanStart: (details) {
+  //       currentPlaying = index + 1;
+  //       positionList[index] = details.localPosition;
+  //       if (currentPlaying > 1) {
+  //         // _counterRestart();
+  //         counter++;
+  //         _counterStart(counter);
+  //       }
+  //       setState(() {
+  //         isOnList[index] = true;
+  //       });
+  //     },
+  //     onPanUpdate: (details) {
+  //       setState(() {
+  //         positionList[index] = details.localPosition;
+  //         print(currentPlaying);
+  //       });
+  //     },
+  //     child: Container(
+  //       width: double.infinity,
+  //       height: double.infinity,
+  //       color: Colors.transparent,
+  //       child: Stack(
+  //         children: [
+  //           isOnList[index]
+  //               ? PositionedCircle(
+  //                   index: index + 1, position: positionList[index])
+  //               : const SizedBox.shrink(),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   void _counterRestart() {}
 
@@ -151,57 +151,52 @@ class GeneralGestureDetector extends StatefulWidget {
 
 class _GeneralGestureDetectorState extends State<GeneralGestureDetector> {
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: double.infinity,
-      child: Stack(
-        children: [
-          Visibility(
-            visible: widget.isTouching,
-            child: PositionedCircle(
-              index: widget.index,
-              position: widget.offset,
-            ),
+    return Stack(
+      children: [
+        const SizedBox(
+          width: double.infinity,
+          height: double.infinity,
+        ),
+        Visibility(
+          visible: widget.isTouching,
+          child: PositionedCircle(
+            index: widget.index,
+            position: widget.offset,
           ),
-          SizedBox(
-            width: double.infinity,
-            height: double.infinity,
-            child: GestureDetector(
-              onPanDown: (details) {
-                widget.isTouching = true;
+        ),
+        SizedBox(
+          width: double.infinity,
+          height: double.infinity,
+          child: GestureDetector(
+            onPanStart: (details) {
+              widget.isTouching = true;
+              widget.offset = details.localPosition;
+              widget.following = GeneralGestureDetector(
+                index: widget.index + 1,
+                onPanEnd: (following) {
+                  setState(() {
+                    widget.following = following;
+                  });
+                },
+              );
+              setState(() {});
+            },
+            onPanEnd: (details) {
+              setState(() {
+                widget.isTouching = false;
+                widget.onPanEnd(widget.following);
+              });
+            },
+            onPanUpdate: (details) {
+              setState(() {
                 widget.offset = details.localPosition;
-                widget.following = GeneralGestureDetector(
-                  index: widget.index + 1,
-                  onPanEnd: (following) {
-                    setState(() {
-                      widget.following = following;
-                    });
-                  },
-                );
-                setState(() {});
-              },
-              onPanEnd: (details) {
-                setState(() {
-                  widget.isTouching = false;
-                  widget.onPanEnd(widget.following);
-                });
-              },
-              onPanUpdate: (details) {
-                setState(() {
-                  widget.offset = details.localPosition;
-                });
-              },
-            ),
+              });
+            },
           ),
-          widget.following,
-        ],
-      ),
+        ),
+        widget.following,
+      ],
     );
   }
 }
@@ -216,8 +211,8 @@ class PositionedCircle extends StatelessWidget {
     Key? key,
     required this.index,
     required this.position,
-    this.widthPositionedCircle = 300,
-    this.heightPositionedCircle = 300,
+    this.widthPositionedCircle = 150,
+    this.heightPositionedCircle = 150,
   }) : super(key: key);
 
   @override
@@ -231,6 +226,10 @@ class PositionedCircle extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.primaries[index],
           shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.white,
+            width: 8,
+          ),
         ),
       ),
     );
