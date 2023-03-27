@@ -1,4 +1,4 @@
-// ignore_for_file: dead_code
+// ignore_for_file: dead_code, must_be_immutable
 
 import 'package:flutter/material.dart';
 import 'dart:math';
@@ -20,22 +20,22 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
   List<Offset> positionList = [];
   List<Widget> gestureDetectors = [];
 
-  late Widget generalGestureDetectorTest;
+  late Widget generalGestureDetector;
 
   @override
   void initState() {
     isOnList = List.generate(maxPlayersAmount, (index) => false);
     positionList =
         List.generate(maxPlayersAmount, (index) => const Offset(0, 0));
-    super.initState();
-    generalGestureDetectorTest = GeneralGestureDetector(
+    generalGestureDetector = GeneralGestureDetector(
       index: 0,
-      onPanEnd: (following) {
+      cuandoSeDejaDePresionar: (following) {
         setState(() {
-          generalGestureDetectorTest = following;
+          generalGestureDetector = following;
         });
       },
     );
+    super.initState();
   }
 
   @override
@@ -62,7 +62,7 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
             SizedBox(
               width: double.infinity,
               height: double.infinity,
-              child: generalGestureDetectorTest,
+              child: generalGestureDetector,
             ),
           ],
         ),
@@ -136,13 +136,13 @@ class GeneralGestureDetector extends StatefulWidget {
   GeneralGestureDetector({
     super.key,
     required this.index,
-    required this.onPanEnd,
+    required this.cuandoSeDejaDePresionar,
   });
 
   int index;
   Offset offset = const Offset(100, 100);
   Widget following = const SizedBox.shrink();
-  Function(Widget following) onPanEnd;
+  Function(Widget following) cuandoSeDejaDePresionar;
   bool isTouching = false;
 
   @override
@@ -154,45 +154,42 @@ class _GeneralGestureDetectorState extends State<GeneralGestureDetector> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        const SizedBox(
-          width: double.infinity,
-          height: double.infinity,
+        GestureDetector(
+          onPanDown: (details) {
+            setState(() {
+              widget.isTouching = true;
+              widget.offset = details.localPosition;
+              widget.following = GeneralGestureDetector(
+                index: widget.index + 1,
+                cuandoSeDejaDePresionar: (following) {
+                  setState(() {
+                    widget.following = following;
+                  });
+                },
+              );
+            });
+            print(widget.following);
+          },
+          onPanEnd: (details) {
+            widget.isTouching = false;
+            widget.cuandoSeDejaDePresionar(widget.following);
+          },
+          onPanUpdate: (details) {
+            setState(() {
+              widget.offset = details.localPosition;
+            });
+          },
+          child: Container(
+            color: Colors.transparent,
+            width: double.infinity,
+            height: double.infinity,
+          ),
         ),
         Visibility(
           visible: widget.isTouching,
           child: PositionedCircle(
             index: widget.index,
             position: widget.offset,
-          ),
-        ),
-        SizedBox(
-          width: double.infinity,
-          height: double.infinity,
-          child: GestureDetector(
-            onPanStart: (details) {
-              widget.isTouching = true;
-              widget.offset = details.localPosition;
-              widget.following = GeneralGestureDetector(
-                index: widget.index + 1,
-                onPanEnd: (following) {
-                  setState(() {
-                    widget.following = following;
-                  });
-                },
-              );
-              setState(() {});
-            },
-            onPanEnd: (details) {
-              setState(() {
-                widget.isTouching = false;
-                widget.onPanEnd(widget.following);
-              });
-            },
-            onPanUpdate: (details) {
-              setState(() {
-                widget.offset = details.localPosition;
-              });
-            },
           ),
         ),
         widget.following,
@@ -211,8 +208,8 @@ class PositionedCircle extends StatelessWidget {
     Key? key,
     required this.index,
     required this.position,
-    this.widthPositionedCircle = 150,
-    this.heightPositionedCircle = 150,
+    this.widthPositionedCircle = 120,
+    this.heightPositionedCircle = 120,
   }) : super(key: key);
 
   @override
