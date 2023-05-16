@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 
 class ChoozyScreen extends StatefulWidget {
-  const ChoozyScreen({Key? key}) : super(key: key);
+  ChoozyScreen({Key? key}) : super(key: key);
+
+  late Widget generalGestureDetector;
 
   @override
   State<ChoozyScreen> createState() => _ChoozyScreenState();
@@ -20,19 +22,19 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
   List<Offset> positionList = [];
   List<Widget> gestureDetectors = [];
 
-  late Widget generalGestureDetector;
-
   @override
   void initState() {
     isOnList = List.generate(maxPlayersAmount, (index) => false);
     positionList =
         List.generate(maxPlayersAmount, (index) => const Offset(0, 0));
-    generalGestureDetector = GeneralGestureDetector(
+    widget.generalGestureDetector = GeneralGestureDetector(
+      key: GlobalKey(),
       index: 0,
       cuandoSeDejaDePresionar: (following) {
-        setState(() {
-          generalGestureDetector = following;
-        });
+        widget.generalGestureDetector = following;
+      },
+      doSetState: () {
+        setState(() {});
       },
     );
     super.initState();
@@ -62,7 +64,7 @@ class _ChoozyScreenState extends State<ChoozyScreen> {
             SizedBox(
               width: double.infinity,
               height: double.infinity,
-              child: generalGestureDetector,
+              child: widget.generalGestureDetector,
             ),
           ],
         ),
@@ -137,12 +139,14 @@ class GeneralGestureDetector extends StatefulWidget {
     super.key,
     required this.index,
     required this.cuandoSeDejaDePresionar,
+    required this.doSetState,
   });
 
   int index;
   Offset offset = const Offset(100, 100);
   Widget following = const SizedBox.shrink();
   Function(Widget following) cuandoSeDejaDePresionar;
+  Function() doSetState;
   bool isTouching = false;
 
   @override
@@ -152,26 +156,28 @@ class GeneralGestureDetector extends StatefulWidget {
 class _GeneralGestureDetectorState extends State<GeneralGestureDetector> {
   @override
   Widget build(BuildContext context) {
+    print("indice: ${widget.index}");
     return Stack(
       children: [
         GestureDetector(
-          onPanDown: (details) {
-            setState(() {
-              widget.isTouching = true;
-              widget.offset = details.localPosition;
-              widget.following = GeneralGestureDetector(
-                index: widget.index + 1,
-                cuandoSeDejaDePresionar: (following) {
-                  setState(() {
-                    widget.following = following;
-                  });
-                },
-              );
-            });
-            print(widget.following);
+          onPanStart: (details) {
+            widget.isTouching = true;
+            widget.offset = details.localPosition;
+            widget.following = GeneralGestureDetector(
+              key: GlobalKey(),
+              index: widget.index + 1,
+              cuandoSeDejaDePresionar: (following) {
+                widget.following = following;
+              },
+              doSetState: () {
+                widget.doSetState();
+              },
+            );
           },
           onPanEnd: (details) {
-            widget.isTouching = false;
+            setState(() {
+              widget.isTouching = false;
+            });
             widget.cuandoSeDejaDePresionar(widget.following);
           },
           onPanUpdate: (details) {
@@ -221,7 +227,7 @@ class PositionedCircle extends StatelessWidget {
         width: widthPositionedCircle,
         height: heightPositionedCircle,
         decoration: BoxDecoration(
-          color: Colors.primaries[index],
+          color: Colors.red,
           shape: BoxShape.circle,
           border: Border.all(
             color: Colors.white,
